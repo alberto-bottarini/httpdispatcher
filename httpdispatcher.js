@@ -26,7 +26,7 @@ HttpDispatcher.prototype.dispatch = function(req, res) {
 }
 HttpDispatcher.prototype.staticListener =  function(parsedUrl, req, res) {
 	var filename = require('path').join(".", parsedUrl.pathname);
-	fs.readFile(filename, function(err, file) {
+	require('fs').readFile(filename, function(err, file) {
 		if(err) {
 			res.writeHeader(404, {
 				"Content-Type": "text/plain"
