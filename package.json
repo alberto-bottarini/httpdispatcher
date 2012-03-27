@@ -1,0 +1,15 @@
+{
+  "author": {
+    "name": "Alberto Bottarini",
+    "url": "http://www.albertobottarini.com",
+    "email": "alberto.bottarini@gmail.com"
+  },
+  "dependencies": {},
+  "description": "A simple class allows developer to have a clear dispatcher for dynamic pages and static resources.",
+  "devDependencies": {},
+  "keywords": ["util", "httpdispatcher", "dispatcher"],
+  "main": "httpdispatcher.js",
+  "name": "httpdispatcher",
+  "repository": {"url": "https://github.com/alberto-bottarini/httpdispatcher", "type": "git"},
+  "version": "0.1"
+}
