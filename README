@@ -6,7 +6,7 @@ Using httpdispatcher is pretty simple:
 
 	var dispatcher = require('./httpdispatcher');
 	
-	dispatcher.setStaticFolderPrefix('/resources');
+	dispatcher.setStatic('resources');
 	
 	dispatcher.onGet("/page1", function(req, res) {
 		res.writeHead(200, {'Content-Type': 'text/plain'});
@@ -16,6 +16,14 @@ Using httpdispatcher is pretty simple:
 	dispatcher.onPost("/page2", function(req, res) {
 		res.writeHead(200, {'Content-Type': 'text/plain'});
 		res.end('Page Two');
+	});
+	
+	dispatcher.beforeFilter(/\//, function(req, res) { //any url
+		console.log("Before filter");
+	});
+	
+	dispatcher.afterFilter(/\//, function(req, res) { //any url
+		console.log("After filter");
 	});
 	
 	dispatcher.onError(function(req, res) {
