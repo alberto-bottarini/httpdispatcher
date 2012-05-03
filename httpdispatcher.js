@@ -27,7 +27,7 @@ HttpDispatcher.prototype.onError = function(cb) {
 	this.errorListener = cb;
 }
 HttpDispatcher.prototype.setStatic = function(folder) {
-	this.on('get', new RegExp("\/"+folder), this.staticListener);
+	this.on('get', new RegExp("\/"+folder), this.staticListener.bind(this));
 }
 HttpDispatcher.prototype.beforeFilter = function(url, cb) {
 	this.filter('before', url, cb);
