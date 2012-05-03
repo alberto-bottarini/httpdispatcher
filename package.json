@@ -4,7 +4,9 @@
     "url": "http://www.albertobottarini.com",
     "email": "alberto.bottarini@gmail.com"
   },
-  "dependencies": {},
+  "dependencies": {
+      "mime": ">=1.2.5"
+  },
   "description": "A simple class allows developer to have a clear dispatcher for dynamic pages and static resources.",
   "devDependencies": {},
   "keywords": ["util", "httpdispatcher", "dispatcher"],
