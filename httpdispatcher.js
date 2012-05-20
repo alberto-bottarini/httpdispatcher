@@ -96,6 +96,9 @@ HttpChain.prototype.next = function(req, res) {
 	var cb = this.queue.shift();
 	if(cb) cb(req, res, this);
 }
+HttpChain.prototype.stop = function(req, res) {
+	res.end();
+}
 HttpChain.prototype.getWrapped = function(cb) {
 	return function(req, res, chain) {
 		cb(req, res);

@@ -18,12 +18,14 @@ Using httpdispatcher is pretty simple:
 		res.end('Page Two');
 	});
 	
-	dispatcher.beforeFilter(/\//, function(req, res) { //any url
+	dispatcher.beforeFilter(/\//, function(req, res, chain) { //any url
 		console.log("Before filter");
+		chain.next(req, res, chain);
 	});
 	
 	dispatcher.afterFilter(/\//, function(req, res) { //any url
 		console.log("After filter");
+		chain.next(req, res, chain);
 	});
 	
 	dispatcher.onError(function(req, res) {
