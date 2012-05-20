@@ -43,7 +43,7 @@ HttpDispatcher.prototype.dispatch = function(req, res) {
 	httpChain.addAll(beforeFilters);
 	var listener = this.getListener(url.pathname, method);
 	var listenerCb = listener ? listener : this.errorListener;
-	httpChain.add(listenerCb);
+	httpChain.add(httpChain.getWrapped(listenerCb));
 	var afterFilters = this.getFilters(url.pathname, 'after');
 	httpChain.addAll(afterFilters);
 	httpChain.next(req, res);
@@ -87,13 +87,13 @@ var HttpChain = function() {
 	this.queue = [];
 }
 HttpChain.prototype.add = function(cb) {
-	this.queue.push(this.getWrapped(cb));
+	this.queue.push(cb);
 }
 HttpChain.prototype.addAll = function(cbs) {
 	for(var i = 0; i<cbs.length; i++) this.add(cbs[i]);
 }
 HttpChain.prototype.next = function(req, res) {
-	var cb = this.queue.shift()
+	var cb = this.queue.shift();
 	if(cb) cb(req, res, this);
 }
 HttpChain.prototype.getWrapped = function(cb) {
