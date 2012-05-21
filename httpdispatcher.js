@@ -2,7 +2,10 @@ var util = require('util');
 var HttpDispatcher = function() {
 	this.listeners = { get: [ ], post: [ ] };
 	this.filters = { before: [ ], after: [ ] };
-	this.errorListener = function() { }
+	this.errorListener = function(req, res) { 
+		res.writeHead(404);
+		res.end();
+	}
 	this.staticFolderPrefix = '/static';
 }
 HttpDispatcher.prototype.on = function(method, url, cb) {
@@ -38,15 +41,34 @@ HttpDispatcher.prototype.afterFilter = function(url, cb) {
 HttpDispatcher.prototype.dispatch = function(req, res) {
 	var url = require('url').parse(req.url, true);
 	var method = req.method.toLowerCase();
-	var httpChain = new HttpChain();
-	var beforeFilters = this.getFilters(url.pathname, 'before');
-	httpChain.addAll(beforeFilters);
-	var listener = this.getListener(url.pathname, method);
-	var listenerCb = listener ? listener : this.errorListener;
-	httpChain.add(httpChain.getWrapped(listenerCb));
-	var afterFilters = this.getFilters(url.pathname, 'after');
-	httpChain.addAll(afterFilters);
-	httpChain.next(req, res);
+	var dispatcher = this;
+	var doDispatch = function() {
+		var httpChain = new HttpChain();
+		var beforeFilters = this.getFilters(url.pathname, 'before');
+		httpChain.addAll(beforeFilters);
+		var listener = this.getListener(url.pathname, method);
+		var listenerCb = listener ? listener : this.errorListener;
+		httpChain.add(httpChain.getWrapped(listenerCb));
+		var afterFilters = this.getFilters(url.pathname, 'after');
+		httpChain.addAll(afterFilters);
+		httpChain.next(req, res);
+	}
+	if(method == 'post') {
+		var body = '';
+		req.on('data', function(data) {
+			body += data;
+		});
+		req.on('end', function() {
+			var post = require('querystring').parse(body);
+			req.body = body;
+			req.params = post;
+			doDispatch.call(dispatcher);
+		});
+	} else {
+		var url_parts = require('url').parse(req.url, true);
+		req.params = url_parts.query;
+		doDispatch.call(dispatcher);
+	}
 }
 HttpDispatcher.prototype.staticListener =  function(req, res) {
 	var url = require('url').parse(req.url, true);

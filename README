@@ -2,6 +2,7 @@ httpdispatcher - basic dispatcher for node.js
 =======
 
 httpdispatcher is a simple class allows developer to have a clear dispatcher for dynamic pages and static resources.
+Classes http.ServerRequest and http.ServerResponse earns new params property containing a map of received HTTP parameters.
 Using httpdispatcher is pretty simple:
 
 	var dispatcher = require('./httpdispatcher');
