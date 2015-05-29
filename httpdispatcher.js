@@ -76,7 +76,7 @@ HttpDispatcher.prototype.dispatch = function(req, res) {
 }
 HttpDispatcher.prototype.staticListener =  function(req, res) {
 	var url = require('url').parse(req.url, true);
-	var filename = require('path').join(this.staticDirname, url.pathname);
+	var filename = "." + require('path').join(this.staticDirname, url.pathname);
 	var errorListener = this.errorListener;
 	require('fs').readFile(filename, function(err, file) {
 		if(err) {
