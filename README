@@ -6,8 +6,9 @@ Classes http.ServerRequest and http.ServerResponse earns new params property con
 Using httpdispatcher is pretty simple:
 
 	var dispatcher = require('./httpdispatcher');
-	
+
 	dispatcher.setStatic('resources');
+	dispatcher.setStaticDirname('.');
 	
 	dispatcher.onGet("/page1", function(req, res) {
 		res.writeHead(200, {'Content-Type': 'text/plain'});
