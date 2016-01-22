@@ -5,6 +5,7 @@ httpdispatcher is a simple class allows developer to have a clear dispatcher for
 Classes http.ServerRequest and http.ServerResponse earns new params property containing a map of received HTTP parameters.
 Using httpdispatcher is pretty simple:
 
+```js
 	var dispatcher = require('./httpdispatcher');
 
 	dispatcher.setStatic('resources');
@@ -46,4 +47,4 @@ Using httpdispatcher is pretty simple:
 	GET /resources/images-that-exists.png => Image resource
 	GET /resources/images-that-does-not-exists.png => 404
 	*/
-	
+```	
