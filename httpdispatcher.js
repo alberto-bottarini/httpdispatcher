@@ -79,7 +79,6 @@ HttpDispatcher.prototype.dispatch = function(req, res) {
 	}
 }
 HttpDispatcher.prototype.staticListener =  function(req, res) {
-console.log('static');
 	var url = require('url').parse(req.url, true);
 	var errorListener = this.errorListener;
 	var filename = path.join(this.staticDirname, path.relative(this.staticUrlPrefix, url.pathname));
