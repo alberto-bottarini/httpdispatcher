@@ -1,4 +1,5 @@
 var util = require('util');
+var path = require('path');
 var HttpDispatcher = function() {
 	this.listeners = { get: [ ], post: [ ] };
 	this.filters = { before: [ ], after: [ ] };
@@ -31,7 +32,10 @@ HttpDispatcher.prototype.onError = function(cb) {
 	this.errorListener = cb;
 }
 HttpDispatcher.prototype.setStatic = function(folder) {
-	this.on('get', new RegExp("\/"+folder), this.staticListener.bind(this));
+	this.staticUrlPrefix = folder;	
+	this.on('get', function(url) {
+		return url.indexOf(folder) === 0;
+	}, this.staticListener.bind(this));
 }
 HttpDispatcher.prototype.setStaticDirname = function(dirname) {
 	this.staticDirname = dirname;
@@ -75,9 +79,14 @@ HttpDispatcher.prototype.dispatch = function(req, res) {
 	}
 }
 HttpDispatcher.prototype.staticListener =  function(req, res) {
+console.log('static');
 	var url = require('url').parse(req.url, true);
-	var filename = "." + require('path').join(this.staticDirname, url.pathname);
 	var errorListener = this.errorListener;
+	var filename = path.join(this.staticDirname, path.relative(this.staticUrlPrefix, url.pathname));
+	if (filename.indexOf(this.staticDirname) !== 0) {
+		errorListener(req, res);
+		return;
+	}
 	require('fs').readFile(filename, function(err, file) {
 		if(err) {
 			errorListener(req, res);
