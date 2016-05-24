@@ -1,9 +1,15 @@
 var util = require('util');
 var path = require('path');
 var HttpDispatcher = function() {
-	this.listeners = { get: [ ], post: [ ] };
+	this.listeners = {
+		'head' : [ ],
+		'get' : [ ],
+		'post': [ ],
+		'put' : [ ],
+		'delete' : [ ]
+	};
 	this.filters = { before: [ ], after: [ ] };
-	this.errorListener = function(req, res) { 
+	this.errorListener = function(req, res) {
 		res.writeHead(404);
 		res.end();
 	}
@@ -22,11 +28,20 @@ HttpDispatcher.prototype.filter = function(method, url, cb) {
 		url: url
 	});
 }
+HttpDispatcher.prototype.onHead = function(url, cb) {
+	this.on('head', url, cb);
+}
 HttpDispatcher.prototype.onGet = function(url, cb) {
 	this.on('get', url, cb);
-}	
+}
 HttpDispatcher.prototype.onPost = function(url, cb) {
 	this.on('post', url, cb);
+}
+HttpDispatcher.prototype.onPut = function(url, cb) {
+	this.on('put', url, cb);
+}
+HttpDispatcher.prototype.onDelete = function(url, cb) {
+	this.on('delete', url, cb);
 }
 HttpDispatcher.prototype.onError = function(cb) {
 	this.errorListener = cb;
@@ -99,9 +114,11 @@ HttpDispatcher.prototype.staticListener =  function(req, res) {
 	});
 }
 HttpDispatcher.prototype.getListener = function(url, method) {
-	for(var i = 0, listener; i<this.listeners[method].length; i++) {
-		listener = this.listeners[method][i];
-		if(this.urlMatches(listener.url, url)) return listener.cb;
+	if (this.listeners[method]) {
+		for(var i = 0, listener; i<this.listeners[method].length; i++) {
+			listener = this.listeners[method][i];
+			if(this.urlMatches(listener.url, url)) return listener.cb;
+		}
 	}
 }
 HttpDispatcher.prototype.getFilters = function(url, type) {
