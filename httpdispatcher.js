@@ -2,101 +2,115 @@ var util = require('util');
 var path = require('path');
 var HttpDispatcher = function() {
 	this.listeners = {
-		'head' : [ ],
-		'get' : [ ],
-		'post': [ ],
-		'put' : [ ],
-		'delete' : [ ]
+		'head'  : [ ],
+		'get'   : [ ],
+		'post'  : [ ],
+		'put'   : [ ],
+		'delete': [ ]
 	};
-	this.filters = { before: [ ], after: [ ] };
-	this.errorListener = function(req, res) {
+	this.filters            = { before: [ ], after: [ ] };
+	this.errorListener      = function(req, res) {
 		res.writeHead(404);
 		res.end();
-	}
+	};
 	this.staticFolderPrefix = '/static';
-	this.staticDirname;
-}
+	this.staticDirname      = undefined;
+};
+
 HttpDispatcher.prototype.on = function(method, url, cb) {
 	this.listeners[method].push({
-		cb: cb,
+		cb : cb,
 		url: url
 	});
-}
+};
+
 HttpDispatcher.prototype.filter = function(method, url, cb) {
 	this.filters[method].push({
-		cb: cb,
+		cb : cb,
 		url: url
 	});
-}
+};
+
 HttpDispatcher.prototype.onHead = function(url, cb) {
 	this.on('head', url, cb);
-}
+};
+
 HttpDispatcher.prototype.onGet = function(url, cb) {
 	this.on('get', url, cb);
-}
+};
+
 HttpDispatcher.prototype.onPost = function(url, cb) {
 	this.on('post', url, cb);
-}
+};
+
 HttpDispatcher.prototype.onPut = function(url, cb) {
 	this.on('put', url, cb);
-}
+};
+
 HttpDispatcher.prototype.onDelete = function(url, cb) {
 	this.on('delete', url, cb);
-}
+};
+
 HttpDispatcher.prototype.onError = function(cb) {
 	this.errorListener = cb;
-}
+};
+
 HttpDispatcher.prototype.setStatic = function(folder) {
 	this.staticUrlPrefix = folder;	
 	this.on('get', function(url) {
 		return url.indexOf(folder) === 0;
 	}, this.staticListener.bind(this));
-}
+};
+
 HttpDispatcher.prototype.setStaticDirname = function(dirname) {
 	this.staticDirname = dirname;
-}
+};
+
 HttpDispatcher.prototype.beforeFilter = function(url, cb) {
 	this.filter('before', url, cb);
-}
+};
+
 HttpDispatcher.prototype.afterFilter = function(url, cb) {
 	this.filter('after', url, cb);
-}
+};
+
 HttpDispatcher.prototype.dispatch = function(req, res) {
-	var url = require('url').parse(req.url, true);
-	var method = req.method.toLowerCase();
+	var url        = require('url').parse(req.url, true);
+	var method     = req.method.toLowerCase();
 	var dispatcher = this;
 	var doDispatch = function() {
-		var httpChain = new HttpChain();
+		var httpChain     = new HttpChain();
 		var beforeFilters = this.getFilters(url.pathname, 'before');
 		httpChain.addAll(beforeFilters);
-		var listener = this.getListener(url.pathname, method);
-		var listenerCb = listener ? listener : this.errorListener;
+		var listener      = this.getListener(url.pathname, method);
+		var listenerCb    = listener ? listener : this.errorListener;
 		httpChain.add(httpChain.getWrapped(listenerCb));
-		var afterFilters = this.getFilters(url.pathname, 'after');
+		var afterFilters  = this.getFilters(url.pathname, 'after');
 		httpChain.addAll(afterFilters);
 		httpChain.next(req, res);
-	}
+	};
 	if(method == 'post') {
 		var body = '';
 		req.on('data', function(data) {
 			body += data;
 		});
 		req.on('end', function() {
-			var post = require('querystring').parse(body);
-			req.body = body;
+			var post   = require('querystring').parse(body);
+			req.body   = body;
 			req.params = post;
 			doDispatch.call(dispatcher);
 		});
 	} else {
 		var url_parts = require('url').parse(req.url, true);
-		req.params = url_parts.query;
+		req.params    = url_parts.query;
 		doDispatch.call(dispatcher);
 	}
-}
+};
+
 HttpDispatcher.prototype.staticListener =  function(req, res) {
-	var url = require('url').parse(req.url, true);
+	var url           = require('url').parse(req.url, true);
 	var errorListener = this.errorListener;
-	var filename = path.join(this.staticDirname, path.relative(this.staticUrlPrefix, url.pathname));
+	var filename      = path.join(this.staticDirname, path.relative(this.staticUrlPrefix, url.pathname));
 	if (filename.indexOf(this.staticDirname) !== 0) {
 		errorListener(req, res);
 		return;
@@ -112,7 +126,8 @@ HttpDispatcher.prototype.staticListener =  function(req, res) {
 		res.write(file, 'binary');
 		res.end();
 	});
-}
+};
+
 HttpDispatcher.prototype.getListener = function(url, method) {
 	if (this.listeners[method]) {
 		for(var i = 0, listener; i<this.listeners[method].length; i++) {
@@ -120,7 +135,8 @@ HttpDispatcher.prototype.getListener = function(url, method) {
 			if(this.urlMatches(listener.url, url)) return listener.cb;
 		}
 	}
-}
+};
+
 HttpDispatcher.prototype.getFilters = function(url, type) {
 	var filters = [];
 	for(var i = 0, filter; i<this.filters[type].length; i++) {
@@ -128,32 +144,39 @@ HttpDispatcher.prototype.getFilters = function(url, type) {
 		if(this.urlMatches(filter.url, url)) filters.push(filter.cb);
 	}
 	return filters;
-}
+};
+
 HttpDispatcher.prototype.urlMatches = function(config, url) {
 	if(config instanceof RegExp) return config.test(url);
 	if(util.inspect(config) == "[Function]") return config(url);
 	return config == url;
-}
+};
+
 var HttpChain = function() {
 	this.queue = [];
-}
+};
+
 HttpChain.prototype.add = function(cb) {
 	this.queue.push(cb);
-}
+};
+
 HttpChain.prototype.addAll = function(cbs) {
 	for(var i = 0; i<cbs.length; i++) this.add(cbs[i]);
-}
+};
+
 HttpChain.prototype.next = function(req, res) {
 	var cb = this.queue.shift();
 	if(cb) cb(req, res, this);
-}
+};
+
 HttpChain.prototype.stop = function(req, res) {
 	res.end();
-}
+};
+
 HttpChain.prototype.getWrapped = function(cb) {
 	return function(req, res, chain) {
 		cb(req, res);
 		chain.next(req, res);
-	}
-}
-module.exports = new HttpDispatcher();
+	};
+};
+module.exports = HttpDispatcher;
