@@ -6,8 +6,9 @@ Classes http.ServerRequest and http.ServerResponse earns new params property con
 Using httpdispatcher is pretty simple:
 
 ```js
-	var dispatcher = require('../httpdispatcher');
-	var http = require('http');
+	var HttpDispatcher = require('../httpdispatcher');
+	var http           = require('http');
+	var dispatcher     = new HttpDispatcher();
 
 	dispatcher.setStatic('/resources');
 	dispatcher.setStaticDirname('static');
@@ -43,10 +44,10 @@ Using httpdispatcher is pretty simple:
 	
 	
 	/*
-	GET /page1 => 'Page One'
-	POST /page2 => 'Page Two'
-	GET /page3 => 404
-	GET /resources/images-that-exists.png => Image resource
-	GET /resources/images-that-does-not-exists.png => 404
+	GET  /page1  => 'Page One'
+	POST /page2  => 'Page Two'
+	GET  /page3  => 404
+	GET  /resources/images-that-exists.png => Image resource
+	GET  /resources/images-that-does-not-exists.png => 404
 	*/
 ```	
