@@ -90,12 +90,14 @@ HttpDispatcher.prototype.dispatch = function(req, res) {
         httpChain.next(req, res);
     };
     if(method == 'post') {
-        var body = '';
+        var body;
+        var chunks = [];
         req.on('data', function(data) {
-            body += data;
+            chunks.push(data);
         });
         req.on('end', function() {
-            var post   = require('querystring').parse(body);
+            body = Buffer.concat(chunks);
+            var post   = require('querystring').parse(body.toString());
             req.body   = body;
             req.params = post;
             doDispatch.call(dispatcher);
