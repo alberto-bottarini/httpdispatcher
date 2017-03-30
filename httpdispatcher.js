@@ -1,20 +1,21 @@
 var util = require('util');
 var path = require('path');
 var HttpDispatcher = function() {
-    this.listeners = {
-        'head'  : [ ],
-        'get'   : [ ],
-        'post'  : [ ],
-        'put'   : [ ],
-        'delete': [ ]
-    };
-    this.filters            = { before: [ ], after: [ ] };
-    this.errorListener      = function(req, res) {
-        res.writeHead(404);
-        res.end();
-    };
-    this.staticFolderPrefix = '/static';
-    this.staticDirname      = undefined;
+	this.listeners = {
+		'head'  : [ ],
+		'get'   : [ ],
+		'post'  : [ ],
+		'put'   : [ ],
+		'delete': [ ],
+		'options': [ ]
+	};
+	this.filters            = { before: [ ], after: [ ] };
+	this.errorListener      = function(req, res) {
+		res.writeHead(404);
+		res.end();
+	};
+	this.staticFolderPrefix = '/static';
+	this.staticDirname      = undefined;
 };
 
 HttpDispatcher.prototype.on = function(method, url, cb) {
@@ -41,6 +42,10 @@ HttpDispatcher.prototype.onGet = function(url, cb) {
 
 HttpDispatcher.prototype.onPost = function(url, cb) {
     this.on('post', url, cb);
+};
+
+HttpDispatcher.prototype.onOptions = function(url, cb) {
+	this.on('options', url, cb);
 };
 
 HttpDispatcher.prototype.onPut = function(url, cb) {
