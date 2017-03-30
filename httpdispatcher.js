@@ -19,29 +19,29 @@ var HttpDispatcher = function() {
 };
 
 HttpDispatcher.prototype.on = function(method, url, cb) {
-	this.listeners[method].push({
-		cb : cb,
-		url: url
-	});
+    this.listeners[method].push({
+        cb : cb,
+        url: url
+    });
 };
 
 HttpDispatcher.prototype.filter = function(method, url, cb) {
-	this.filters[method].push({
-		cb : cb,
-		url: url
-	});
+    this.filters[method].push({
+        cb : cb,
+        url: url
+    });
 };
 
 HttpDispatcher.prototype.onHead = function(url, cb) {
-	this.on('head', url, cb);
+    this.on('head', url, cb);
 };
 
 HttpDispatcher.prototype.onGet = function(url, cb) {
-	this.on('get', url, cb);
+    this.on('get', url, cb);
 };
 
 HttpDispatcher.prototype.onPost = function(url, cb) {
-	this.on('post', url, cb);
+    this.on('post', url, cb);
 };
 
 HttpDispatcher.prototype.onOptions = function(url, cb) {
@@ -49,139 +49,141 @@ HttpDispatcher.prototype.onOptions = function(url, cb) {
 };
 
 HttpDispatcher.prototype.onPut = function(url, cb) {
-	this.on('put', url, cb);
+    this.on('put', url, cb);
 };
 
 HttpDispatcher.prototype.onDelete = function(url, cb) {
-	this.on('delete', url, cb);
+    this.on('delete', url, cb);
 };
 
 HttpDispatcher.prototype.onError = function(cb) {
-	this.errorListener = cb;
+    this.errorListener = cb;
 };
 
 HttpDispatcher.prototype.setStatic = function(folder) {
-	this.staticUrlPrefix = folder;	
-	this.on('get', function(url) {
-		return url.indexOf(folder) === 0;
-	}, this.staticListener.bind(this));
+    this.staticUrlPrefix = folder;  
+    this.on('get', function(url) {
+        return url.indexOf(folder) === 0;
+    }, this.staticListener.bind(this));
 };
 
 HttpDispatcher.prototype.setStaticDirname = function(dirname) {
-	this.staticDirname = dirname;
+    this.staticDirname = dirname;
 };
 
 HttpDispatcher.prototype.beforeFilter = function(url, cb) {
-	this.filter('before', url, cb);
+    this.filter('before', url, cb);
 };
 
 HttpDispatcher.prototype.afterFilter = function(url, cb) {
-	this.filter('after', url, cb);
+    this.filter('after', url, cb);
 };
 
 HttpDispatcher.prototype.dispatch = function(req, res) {
-	var url        = require('url').parse(req.url, true);
-	var method     = req.method.toLowerCase();
-	var dispatcher = this;
-	var doDispatch = function() {
-		var httpChain     = new HttpChain();
-		var beforeFilters = this.getFilters(url.pathname, 'before');
-		httpChain.addAll(beforeFilters);
-		var listener      = this.getListener(url.pathname, method);
-		var listenerCb    = listener ? listener : this.errorListener;
-		httpChain.add(httpChain.getWrapped(listenerCb));
-		var afterFilters  = this.getFilters(url.pathname, 'after');
-		httpChain.addAll(afterFilters);
-		httpChain.next(req, res);
-	};
-	if(method == 'post') {
-		var body = '';
-		req.on('data', function(data) {
-			body += data;
-		});
-		req.on('end', function() {
-			var post   = require('querystring').parse(body);
-			req.body   = body;
-			req.params = post;
-			doDispatch.call(dispatcher);
-		});
-	} else {
-		var url_parts = require('url').parse(req.url, true);
-		req.params    = url_parts.query;
-		doDispatch.call(dispatcher);
-	}
+    var url        = require('url').parse(req.url, true);
+    var method     = req.method.toLowerCase();
+    var dispatcher = this;
+    var doDispatch = function() {
+        var httpChain     = new HttpChain();
+        var beforeFilters = this.getFilters(url.pathname, 'before');
+        httpChain.addAll(beforeFilters);
+        var listener      = this.getListener(url.pathname, method);
+        var listenerCb    = listener ? listener : this.errorListener;
+        httpChain.add(httpChain.getWrapped(listenerCb));
+        var afterFilters  = this.getFilters(url.pathname, 'after');
+        httpChain.addAll(afterFilters);
+        httpChain.next(req, res);
+    };
+    if(method == 'post') {
+        var body;
+        var chunks = [];
+        req.on('data', function(data) {
+            chunks.push(data);
+        });
+        req.on('end', function() {
+            body = Buffer.concat(chunks).toString();
+            var post   = require('querystring').parse(body);
+            req.body   = body;
+            req.params = post;
+            doDispatch.call(dispatcher);
+        });
+    } else {
+        var url_parts = require('url').parse(req.url, true);
+        req.params    = url_parts.query;
+        doDispatch.call(dispatcher);
+    }
 };
 
 HttpDispatcher.prototype.staticListener =  function(req, res) {
-	var url           = require('url').parse(req.url, true);
-	var errorListener = this.errorListener;
-	var filename      = path.join(this.staticDirname, path.relative(this.staticUrlPrefix, url.pathname));
-	if (filename.indexOf(this.staticDirname) !== 0) {
-		errorListener(req, res);
-		return;
-	}
-	require('fs').readFile(filename, function(err, file) {
-		if(err) {
-			errorListener(req, res);
-			return;
-		}
-		res.writeHeader(200, {
-			"Content-Type": require('mime').lookup(filename)
-		});
-		res.write(file, 'binary');
-		res.end();
-	});
+    var url           = require('url').parse(req.url, true);
+    var errorListener = this.errorListener;
+    var filename      = path.join(this.staticDirname, path.relative(this.staticUrlPrefix, url.pathname));
+    if (filename.indexOf(this.staticDirname) !== 0) {
+        errorListener(req, res);
+        return;
+    }
+    require('fs').readFile(filename, function(err, file) {
+        if(err) {
+            errorListener(req, res);
+            return;
+        }
+        res.writeHeader(200, {
+            "Content-Type": require('mime').lookup(filename)
+        });
+        res.write(file, 'binary');
+        res.end();
+    });
 };
 
 HttpDispatcher.prototype.getListener = function(url, method) {
-	if (this.listeners[method]) {
-		for(var i = 0, listener; i<this.listeners[method].length; i++) {
-			listener = this.listeners[method][i];
-			if(this.urlMatches(listener.url, url)) return listener.cb;
-		}
-	}
+    if (this.listeners[method]) {
+        for(var i = 0, listener; i<this.listeners[method].length; i++) {
+            listener = this.listeners[method][i];
+            if(this.urlMatches(listener.url, url)) return listener.cb;
+        }
+    }
 };
 
 HttpDispatcher.prototype.getFilters = function(url, type) {
-	var filters = [];
-	for(var i = 0, filter; i<this.filters[type].length; i++) {
-		filter = this.filters[type][i];
-		if(this.urlMatches(filter.url, url)) filters.push(filter.cb);
-	}
-	return filters;
+    var filters = [];
+    for(var i = 0, filter; i<this.filters[type].length; i++) {
+        filter = this.filters[type][i];
+        if(this.urlMatches(filter.url, url)) filters.push(filter.cb);
+    }
+    return filters;
 };
 
 HttpDispatcher.prototype.urlMatches = function(config, url) {
-	if(config instanceof RegExp) return config.test(url);
-	if(util.inspect(config) == "[Function]") return config(url);
-	return config == url;
+    if(config instanceof RegExp) return config.test(url);
+    if(util.inspect(config) == "[Function]") return config(url);
+    return config == url;
 };
 
 var HttpChain = function() {
-	this.queue = [];
+    this.queue = [];
 };
 
 HttpChain.prototype.add = function(cb) {
-	this.queue.push(cb);
+    this.queue.push(cb);
 };
 
 HttpChain.prototype.addAll = function(cbs) {
-	for(var i = 0; i<cbs.length; i++) this.add(cbs[i]);
+    for(var i = 0; i<cbs.length; i++) this.add(cbs[i]);
 };
 
 HttpChain.prototype.next = function(req, res) {
-	var cb = this.queue.shift();
-	if(cb) cb(req, res, this);
+    var cb = this.queue.shift();
+    if(cb) cb(req, res, this);
 };
 
 HttpChain.prototype.stop = function(req, res) {
-	res.end();
+    res.end();
 };
 
 HttpChain.prototype.getWrapped = function(cb) {
-	return function(req, res, chain) {
-		cb(req, res);
-		chain.next(req, res);
-	};
+    return function(req, res, chain) {
+        cb(req, res);
+        chain.next(req, res);
+    };
 };
 module.exports = HttpDispatcher;
