@@ -128,7 +128,7 @@ HttpDispatcher.prototype.staticListener =  function(req, res) {
             return;
         }
         res.writeHeader(200, {
-            "Content-Type": require('mime').lookup(filename)
+            "Content-Type": require('mime-types').lookup(filename)
         });
         res.write(file, 'binary');
         res.end();

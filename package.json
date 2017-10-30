@@ -5,7 +5,7 @@
     "email": "alberto.bottarini@gmail.com"
   },
   "dependencies": {
-      "mime": ">=1.2.5"
+    "mime-types": ">=1.2.5"
   },
   "description": "A simple class allows developer to have a clear dispatcher for dynamic pages and static resources.",
   "devDependencies": {},
