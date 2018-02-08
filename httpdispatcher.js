@@ -101,7 +101,8 @@ HttpDispatcher.prototype.dispatch = function(req, res) {
             chunks.push(data);
         });
         req.on('end', function() {
-            body = Buffer.concat(chunks).toString();
+            req.bodyBuffer = Buffer.concat(chunks);
+            body = req.bodyBuffer.toString();
             var post   = require('querystring').parse(body);
             req.body   = body;
             req.params = post;
