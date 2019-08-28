@@ -94,7 +94,7 @@ HttpDispatcher.prototype.dispatch = function(req, res) {
         httpChain.addAll(afterFilters);
         httpChain.next(req, res);
     };
-    if(method == 'post') {
+    if(method.match(/(post|put|patch)/i)) {
         var body;
         var chunks = [];
         req.on('data', function(data) {
