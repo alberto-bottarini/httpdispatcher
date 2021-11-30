@@ -13,6 +13,6 @@
   "main": "httpdispatcher.js",
   "name": "httpdispatcher",
   "repository": {"url": "https://github.com/alberto-bottarini/httpdispatcher", "type": "git"},
-  "version": "2.2",
+  "version": "2.2.0",
   "license": "MIT"
 }
